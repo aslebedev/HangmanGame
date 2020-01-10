@@ -13,6 +13,8 @@
 		116193D3237171940000D1BF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 116193D1237171940000D1BF /* Main.storyboard */; };
 		116193D5237171980000D1BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 116193D4237171980000D1BF /* Assets.xcassets */; };
 		116193D8237171980000D1BF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 116193D6237171980000D1BF /* LaunchScreen.storyboard */; };
+		1190B5C623C838B70049A9D8 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1190B5C523C838B70049A9D8 /* Extensions.swift */; };
+		1190B5CA23C86D8B0049A9D8 /* words.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1190B5C923C86D8B0049A9D8 /* words.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		116193D4237171980000D1BF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		116193D7237171980000D1BF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		116193D9237171980000D1BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1190B5C523C838B70049A9D8 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		1190B5C923C86D8B0049A9D8 /* words.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = words.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,10 +63,12 @@
 				116193CB237171940000D1BF /* AppDelegate.swift */,
 				116193CD237171940000D1BF /* SceneDelegate.swift */,
 				116193CF237171940000D1BF /* ViewController.swift */,
+				1190B5C523C838B70049A9D8 /* Extensions.swift */,
 				116193D1237171940000D1BF /* Main.storyboard */,
 				116193D4237171980000D1BF /* Assets.xcassets */,
 				116193D6237171980000D1BF /* LaunchScreen.storyboard */,
 				116193D9237171980000D1BF /* Info.plist */,
+				1190B5C923C86D8B0049A9D8 /* words.txt */,
 			);
 			path = HangmanGame;
 			sourceTree = "<group>";
@@ -127,6 +133,7 @@
 			files = (
 				116193D8237171980000D1BF /* LaunchScreen.storyboard in Resources */,
 				116193D5237171980000D1BF /* Assets.xcassets in Resources */,
+				1190B5CA23C86D8B0049A9D8 /* words.txt in Resources */,
 				116193D3237171940000D1BF /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -141,6 +148,7 @@
 				116193D0237171940000D1BF /* ViewController.swift in Sources */,
 				116193CC237171940000D1BF /* AppDelegate.swift in Sources */,
 				116193CE237171940000D1BF /* SceneDelegate.swift in Sources */,
+				1190B5C623C838B70049A9D8 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

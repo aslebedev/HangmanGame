@@ -12,8 +12,15 @@ class ViewController: UIViewController {
     
     var completedLabel: UILabel!
     var attempsLabel: UILabel!
+    var displayedLattersLabel: UILabel!
+    var iKnowWord: UIButton!
     var letterButtons = [UIButton]()
-    var word = "ТРАНСПОРТИР"
+    var usedLetterButtons = [UIButton]()
+    
+    let letters = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь", "Э", "Ю", "Я"]
+    var wordsStorage = [String]()
+    var hiddenWord = ""
+    var isGameOver = false
     
     var completedLevels = 0 {
         didSet {
@@ -27,7 +34,13 @@ class ViewController: UIViewController {
         }
     }
 
-
+    var displayedLatters = "" {
+        didSet {
+            displayedLattersLabel.text = displayedLatters
+        }
+    }
+    
+    
     override func loadView() {
         view = UIView()
         view.backgroundColor = .white
@@ -35,159 +48,223 @@ class ViewController: UIViewController {
         completedLabel = UILabel()
         completedLabel.translatesAutoresizingMaskIntoConstraints = false
         completedLabel.font = UIFont.systemFont(ofSize: 18)
-        completedLabel.textAlignment = .right
+        completedLabel.textAlignment = .center
         completedLabel.text = "Слов угадано: 0"
+        completedLabel.alpha = 0.0
         view.addSubview(completedLabel)
         
         attempsLabel = UILabel()
         attempsLabel.translatesAutoresizingMaskIntoConstraints = false
         attempsLabel.font = UIFont.systemFont(ofSize: 18)
-        attempsLabel.textAlignment = .right
+        attempsLabel.textAlignment = .center
         attempsLabel.text = "Осталось попыток: 0"
+        attempsLabel.alpha = 0.0
         view.addSubview(attempsLabel)
         
-        let hiddenWordView = UIView()
-        hiddenWordView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(hiddenWordView)
+        displayedLattersLabel = UILabel()
+        displayedLattersLabel.translatesAutoresizingMaskIntoConstraints = false
+        displayedLattersLabel.textAlignment = .center
+        displayedLattersLabel.text = "?"
+        displayedLattersLabel.alpha = 0.0
+        view.addSubview(displayedLattersLabel)
         
         let buttonsView = UIView()
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(buttonsView)
         
-        let iKnowWord = UIButton(type: .system)
+        iKnowWord = UIButton(type: .system)
         iKnowWord.translatesAutoresizingMaskIntoConstraints = false
-//        submit.layer.borderColor = UIColor.lightGray.cgColor
-//        submit.layer.borderWidth = 1
+        iKnowWord.contentEdgeInsets = UIEdgeInsets(top: 5, left: 22, bottom: 5, right: 22)
         iKnowWord.setTitle("Я знаю слово!", for: .normal)
+        iKnowWord.titleLabel?.font = UIFont.systemFont(ofSize: 24)
+        iKnowWord.alpha = 0.0
         view.addSubview(iKnowWord)
-        iKnowWord.addTarget(self, action: #selector(promptForWord), for: .touchUpInside)
+        iKnowWord.addTarget(self, action: #selector(promptForKnownWord), for: .touchUpInside)
         
+        // set some values for word button
+        let columns = 5
+        let rows = 7
+        let width = 60
+        let height = 42
         
-        // set some values for the width and height of each button
-        let width = 30
-        let height = 40
-/*
-        // create 20 buttons as a 4x5 grid
-        for row in 0..<6 {
-            for col in 0..<5 {
+        // create grid of buttons
+        for row in 0..<rows {
+            for col in 0..<columns {
                 // create a new button and give it a big font size
-                let letterButton = UIButton(type: .system)
-                letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 23)
-
-                // give the button some temporary text so we can see it on-screen
-                letterButton.setTitle("*", for: .normal)
+                let letterButton = UIButton(type: .roundedRect)
+                letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 40)
 
                 // calculate the frame of this button using its column and row
                 let frame = CGRect(x: col * width, y: row * height, width: width, height: height)
                 letterButton.frame = frame
+                letterButton.alpha = 0.0
+
+                //  for last row where 1 letter
+                if row == rows - 1 {
+                    if col == 2 {
+                        letterButton.setTitle(letters.last, for: .normal)
+                    } else {
+                        continue
+                    }
+                } else {
+                    letterButton.setTitle(letters[5 * row + col], for: .normal)
+                }
 
                 // add it to the buttons view
                 buttonsView.addSubview(letterButton)
 
                 // and also to our letterButtons array
                 letterButtons.append(letterButton)
-                
-                //letterButton.addTarget(self, action: #selector(letterTapped), for: .touchUpInside)
+
+                letterButton.addTarget(self, action: #selector(letterWasTapped), for: .touchUpInside)
             }
-        }
-*/
-        for (index, _) in self.word.enumerated() {
-            let letterLabel = UILabel()
-            letterLabel.font = UIFont.systemFont(ofSize: 24)
-            letterLabel.text = "?"
-            letterLabel.backgroundColor = .gray
-            let frame = CGRect(x: index * width, y: height, width: width, height: height)
-            letterLabel.frame = frame
-            
-            hiddenWordView.addSubview(letterLabel)
         }
         
         NSLayoutConstraint.activate([
-            completedLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 70),
+            completedLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 30),
             completedLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            attempsLabel.topAnchor.constraint(equalTo: completedLabel.bottomAnchor, constant: 20),
+            attempsLabel.topAnchor.constraint(equalTo: completedLabel.bottomAnchor, constant: 15),
             attempsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            hiddenWordView.widthAnchor.constraint(equalToConstant: CGFloat(word.count * width - 2)),
-            hiddenWordView.topAnchor.constraint(equalTo: attempsLabel.bottomAnchor, constant: 30),
-            hiddenWordView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            hiddenWordView.heightAnchor.constraint(equalToConstant: 100),
+            displayedLattersLabel.topAnchor.constraint(equalTo: attempsLabel.bottomAnchor, constant: 20),
+            displayedLattersLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            iKnowWord.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -50),
-            iKnowWord.centerXAnchor.constraint(equalTo: view.layoutMarginsGuide.centerXAnchor),
-/*
-            scoreLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
-            scoreLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-
-            // pin the top of the clues label to the bottom of the score label
-            cluesLabel.topAnchor.constraint(equalTo: scoreLabel.bottomAnchor),
-
-            // pin the leading edge of the clues label to the leading edge of our layout margins, adding 100 for some space
-            cluesLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor, constant: 100),
-
-            // make the clues label 60% of the width of our layout margins, minus 100
-            cluesLabel.widthAnchor.constraint(equalTo: view.layoutMarginsGuide.widthAnchor, multiplier: 0.6, constant: -100),
-
-            // also pin the top of the answers label to the bottom of the score label
-            answersLabel.topAnchor.constraint(equalTo: scoreLabel.bottomAnchor),
-
-            // make the answers label stick to the trailing edge of our layout margins, minus 100
-            answersLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor, constant: -100),
-
-            // make the answers label take up 40% of the available space, minus 100
-            answersLabel.widthAnchor.constraint(equalTo: view.layoutMarginsGuide.widthAnchor, multiplier: 0.4, constant: -100),
-
-            // make the answers label match the height of the clues label
-            answersLabel.heightAnchor.constraint(equalTo: cluesLabel.heightAnchor),
-            
-            currentAnswer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            currentAnswer.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.5),
-            currentAnswer.topAnchor.constraint(equalTo: cluesLabel.bottomAnchor, constant: 20),
-            
-            submit.topAnchor.constraint(equalTo: currentAnswer.bottomAnchor),
-            submit.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -100),
-            submit.heightAnchor.constraint(equalToConstant: 44),
-            submit.widthAnchor.constraint(equalToConstant: 88),
-
-            clear.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 100),
-            clear.centerYAnchor.constraint(equalTo: submit.centerYAnchor),
-            clear.heightAnchor.constraint(equalToConstant: 44),
-            clear.widthAnchor.constraint(equalToConstant: 88),
-            
-            buttonsView.widthAnchor.constraint(equalToConstant: 750),
-            buttonsView.heightAnchor.constraint(equalToConstant: 320),
+            buttonsView.topAnchor.constraint(equalTo: displayedLattersLabel.bottomAnchor, constant: 20),
             buttonsView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            buttonsView.topAnchor.constraint(equalTo: submit.bottomAnchor, constant: 20),
-            buttonsView.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -20)
-*/
+            buttonsView.widthAnchor.constraint(equalToConstant: CGFloat(columns * width)),
+            buttonsView.heightAnchor.constraint(equalToConstant: CGFloat(rows * height)),
+
+            iKnowWord.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -50),
+            iKnowWord.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        if let wordsURL = Bundle.main.url(forResource: "words", withExtension: "txt") {
+            if let startWords = try? String(contentsOf: wordsURL) {
+                wordsStorage = startWords.components(separatedBy: "\n")
+            } else {
+                fatalError("Could not load words from words.txt")
+            }
+        } else {
+            fatalError("Could not load words.txt from bundle")
+        }
+        
+        loadLevel()
     }
 
     func loadLevel() {
-        
+        //  generate hidden word
+        if let randomWord = wordsStorage.randomElement() {
+            hiddenWord = randomWord
+            displayedLatters = String(repeating: "?", count: hiddenWord.count)
+            attempsLeft = hiddenWord.count
+            
+            UIView.animate(withDuration: 0.5, delay: 0.5, animations: {
+                self.completedLabel.alpha = 1.0
+                self.attempsLabel.alpha = 1.0
+                self.displayedLattersLabel.alpha = 1.0
+                self.iKnowWord.alpha = 1.0
+                for letterButton in self.letterButtons {
+                    letterButton.alpha = 1.0
+                }
+            })
+        } else {
+            fatalError("Cant receive hiddenWord")
+        }
     }
     
-    @objc func promptForWord() {
+    func playAgain(_: UIAlertAction) {
+        isGameOver = false
+        
+        UIView.animate(withDuration: 0.5, animations: {
+            self.completedLabel.alpha = 0.0
+            self.attempsLabel.alpha = 0.0
+            self.displayedLattersLabel.alpha = 0.0
+            self.iKnowWord.alpha = 0.0
+            for letterButton in self.letterButtons {
+                letterButton.alpha = 0.0
+            }
+        }, completion: { _ in
+            self.loadLevel()
+        })
+    }
+    
+    @objc func letterWasTapped(_ sender: UIButton) {
+        if isGameOver { return }
+        
+        guard let tappedLetter = sender.titleLabel?.text else { return }
+        
+        UIView.animate(withDuration: 0.4, delay: 0, options: [],
+            animations: {
+                sender.alpha = 0.0
+
+        })
+        usedLetterButtons.append(sender)
+        
+        if hiddenWord.contains(Character(tappedLetter)) {
+            //  show correct letter
+            for (index, hiddenLetter) in hiddenWord.enumerated() {
+                if String(hiddenLetter) == tappedLetter {
+                    self.displayedLatters.replace(index, Character(tappedLetter))
+                }
+            }
+        } else {
+            self.attempsLeft -= 1
+        }
+        
+        if attempsLeft == 0 || !displayedLatters.contains("?") {
+            isGameOver = true
+            
+            if displayedLatters.contains("?") {
+                gameOver(isWin: false)
+            } else {
+                gameOver(isWin: true)
+            }
+        }
+    }
+    
+    @objc func promptForKnownWord() {
         let ac = UIAlertController(title: "Введите ответ", message: nil, preferredStyle: .alert)
         ac.addTextField()
 
         let submitAction = UIAlertAction(title: "Подтвердить", style: .default) { [weak self, weak ac] action in
             guard let answer = ac?.textFields?[0].text else { return }
-            self?.checkForAnswer(answer)
+            self?.checkForKnownWord(answer)
         }
 
         ac.addAction(submitAction)
         present(ac, animated: true)
     }
     
-    func checkForAnswer(_ answer: String) {
+    func checkForKnownWord(_ answer: String) {
+        if hiddenWord == answer {
+            gameOver(isWin: true)
+        } else {
+            gameOver(isWin: false)
+        }
+    }
+    
+    func gameOver(isWin: Bool) {
+        isGameOver = true
         
+        var titleGameOver = ""
+        var message = ""
+        
+        if isWin {
+            titleGameOver = "Вы выиграли!"
+            completedLevels += 1
+        } else {
+            titleGameOver = "Вы проиграли!"
+            message = "Было загадано слово \(hiddenWord)\n"
+        }
+        
+        let ac = UIAlertController(title: titleGameOver, message: "\(message)Желаете поигрть еще раз?", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Начать", style: .default, handler: playAgain))
+        present(ac, animated: true)
     }
 }
 
